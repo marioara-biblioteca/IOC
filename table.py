@@ -2,6 +2,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice
 from PyQt5.QtGui import QPainter, QPen
+from itertools import groupby
+from operator import itemgetter
 data=[
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'},
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:01','Rule':'Potential persitance via login hook','Severity':'medium','Risk Score':'50','Reason':'modify key-value pairs in plist files to influence system behaviors, such as hiding the execution of an application (i.e. Hidden Window) or running additional commands for persistence '},
@@ -10,56 +12,25 @@ data=[
 ]
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+
+
         MainWindow.setObjectName("Alerts Table")
         MainWindow.resize(566, 475)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
+       
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+        #self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
 
+        #self.create_piechart()
         self.create_piechart()
-
-        #https://www.elastic.co/guide/en/security/current/alerts-ui-manage.html
-        self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
-        self.tableWidget.setObjectName("tableWidget")
-        self.verticalLayout_2.addWidget(self.tableWidget)
-        self.tableWidget.setWindowTitle("Alerts Table")
-
-        cols=len(data[0].keys())
-        rows=len(data)
-
-        self.tableWidget.setColumnCount(cols)
-        self.tableWidget.setRowCount(rows)
-        self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
-        [self.tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
-        self.tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
-        for row in range(rows):
-            for i, (k, v) in enumerate(data[row].items()):
-               
-                if i == 0:
-                    item=QtWidgets.QTableWidgetItem()
-                    item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
-                    item.setCheckState(QtCore.Qt.Unchecked) 
-                    self.tableWidget.setItem(row,i,item)
-                elif i == 1:
-                    item = QtWidgets.QTableWidgetItem()
-                    item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-                    item.setIcon(QtGui.QIcon('./icons/more.svg'))
-                    self.tableWidget.setItem(row, i, item)
-                elif i==2:
-                    item = QtWidgets.QTableWidgetItem()
-                    item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-                    item.setIcon(QtGui.QIcon('./icons/expand.svg'))
-                    self.tableWidget.setItem(row, i, item)
-
-
-                else:
-                    self.tableWidget.setItem(row,i,QtWidgets.QTableWidgetItem(v))
+        self.group()
+        self.create_alert_table()
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -75,6 +46,42 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+    def create_alert_table(self):
+        #https://www.elastic.co/guide/en/security/current/alerts-ui-manage.html
+        tableWidget = QtWidgets.QTableWidget(self.centralwidget)
+        tableWidget.setObjectName("tableWidget")
+        self.verticalLayout_2.addWidget(tableWidget)
+
+        cols=len(data[0].keys())
+        rows=len(data)
+        tableWidget.setColumnCount(cols)
+        tableWidget.setRowCount(rows)
+
+        tableWidget.setAlternatingRowColors(True)
+        tableWidget.setWindowTitle("Alerts Table")
+        tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
+        [tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
+        tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
+        for row in range(rows):
+            for i, (k, v) in enumerate(data[row].items()):
+               
+                if i == 0:
+                    item=QtWidgets.QTableWidgetItem()
+                    item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+                    item.setCheckState(QtCore.Qt.Unchecked) 
+                    tableWidget.setItem(row,i,item)
+                elif i == 1:
+                    item = QtWidgets.QTableWidgetItem()
+                    item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                    item.setIcon(QtGui.QIcon('./icons/more.svg'))
+                    tableWidget.setItem(row, i, item)
+                elif i==2:
+                    item = QtWidgets.QTableWidgetItem()
+                    item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                    item.setIcon(QtGui.QIcon('./icons/expand.svg'))
+                    tableWidget.setItem(row, i, item)
+                else:
+                    tableWidget.setItem(row,i,QtWidgets.QTableWidgetItem(v))
     def create_piechart(self):
        
         series = QPieSeries()
@@ -111,10 +118,36 @@ class Ui_MainWindow(object):
 
         chartview = QChartView(chart)
         chartview.setRenderHint(QPainter.Antialiasing)
-        self.verticalLayout_2.addWidget(chartview)
-        # self.setCentralWidget(chartview)
+        self.horizontalLayout_2.addWidget(chartview)
 
 
+    def group(self):
+        data2 = sorted(data,
+                    key = itemgetter('Rule'))
+
+        
+           
+        
+        tableGroupedAlerts = QtWidgets.QTableWidget()
+        tableGroupedAlerts.setObjectName("tableGroupedAlerts")
+        tableGroupedAlerts.setWindowTitle("Alerts Table")
+        self.horizontalLayout_2.addWidget(tableGroupedAlerts)
+
+        cols=2
+        rows=len(data2)
+        tableGroupedAlerts.setColumnCount(cols)
+        tableGroupedAlerts.setRowCount(rows)
+        tableGroupedAlerts.setAlternatingRowColors(True)
+        tableGroupedAlerts.setHorizontalHeaderLabels(['Rule Name','Count']) 
+        tableGroupedAlerts.horizontalHeader().setSectionResizeMode(0,QtWidgets.QHeaderView.ResizeToContents)
+        tableGroupedAlerts.horizontalHeader().setSectionResizeMode(1,QtWidgets.QHeaderView.Stretch)
+
+        for i,(key, value) in enumerate(groupby(data2,
+                                key = itemgetter('Rule'))):
+
+            tableGroupedAlerts.setItem(i,0,QtWidgets.QTableWidgetItem(key))
+            tableGroupedAlerts.setItem(i,1,QtWidgets.QTableWidgetItem(str(len(list(value)))))
+            
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
