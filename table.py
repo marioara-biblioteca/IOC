@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,QSortFilterProxyModel, QAbstractTableModel
+
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice
 from PyQt5.QtGui import QPainter, QPen
 from itertools import groupby
@@ -10,6 +11,27 @@ data=[
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:02','Rule':'Malware prevention alert','Severity':'high','Risk Score':'73','Reason':'malware, intrusion_detection file event with process AYHelperService'},
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'}
 ]
+data2 = [
+            [4, 9, 2],
+            [1, "hello", 0],
+            [3, 5, 0],
+            [3, 3, "what"],
+            ["this", 8, 9],
+        ]
+class TableModel(QAbstractTableModel):
+    def __init__(self, data):
+        super().__init__()
+        self._data = data2
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            return self._data[index.row()][index.column()]
+
+    def rowCount(self, index):
+        return len(self._data)
+
+    def columnCount(self, index):
+        return len(self._data[0])
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
 
@@ -30,6 +52,7 @@ class Ui_MainWindow(object):
         #self.create_piechart()
         self.create_piechart()
         self.group()
+        self.filter_alerts()
         self.create_alert_table()
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -47,6 +70,8 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def create_alert_table(self):
+
+       
         #https://www.elastic.co/guide/en/security/current/alerts-ui-manage.html
         tableWidget = QtWidgets.QTableWidget(self.centralwidget)
         tableWidget.setObjectName("tableWidget")
@@ -82,6 +107,23 @@ class Ui_MainWindow(object):
                     tableWidget.setItem(row, i, item)
                 else:
                     tableWidget.setItem(row,i,QtWidgets.QTableWidgetItem(v))
+    def filter_alerts(self):
+        model = TableModel(data)
+        proxy_model = QSortFilterProxyModel()
+        proxy_model.setFilterKeyColumn(-1) # Search all columns.
+        proxy_model.setSourceModel(model)
+        proxy_model.sort(0, Qt.AscendingOrder)
+        tableWidget=QtWidgets.QTableView()
+        tableWidget.setModel(proxy_model)
+        searchbar =QtWidgets.QLineEdit()
+        searchbar.textChanged.connect(proxy_model.setFilterFixedString)
+        
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(searchbar)
+        layout.addWidget(tableWidget)
+
+        self.horizontalLayout_2.addLayout(layout)
+       
     def create_piechart(self):
        
         series = QPieSeries()
