@@ -11,30 +11,30 @@ data=[
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:02','Rule':'Malware prevention alert','Severity':'high','Risk Score':'73','Reason':'malware, intrusion_detection file event with process AYHelperService'},
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'}
 ]
-data2 = [
-            [4, 9, 2],
-            [1, "hello", 0],
-            [3, 5, 0],
-            [3, 3, "what"],
-            ["this", 8, 9],
-        ]
+
 class TableModel(QAbstractTableModel):
     def __init__(self, data):
         super().__init__()
-        self._data = data2
-
+        self._data = data
+        self._headers=list(data[0].keys())[3:]        
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            return self._data[index.row()][index.column()]
+            return self._data[index.row()][self._headers[index.column()]]
 
     def rowCount(self, index):
         return len(self._data)
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._headers[section])
+
+            if orientation == Qt.Vertical:
+                return str(section)
 
     def columnCount(self, index):
-        return len(self._data[0])
+        return len(self._headers)
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-
 
         MainWindow.setObjectName("Alerts Table")
         MainWindow.resize(566, 475)
