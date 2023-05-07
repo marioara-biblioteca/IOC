@@ -1,12 +1,3 @@
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-"""Sample PyQt application."""
 
 import sys
 from functools import partial
@@ -23,7 +14,7 @@ from PyQt5.QtWidgets import (
     QToolBar,
 )
 
-# NOTE: Uncomment this import to enable icons
+
 import qrc_resources
 
 
@@ -45,7 +36,6 @@ class Window(QMainWindow):
         # Uncomment the call to ._createContextMenu() below to create a context
         # menu using menu policies. To test this out, you also need to
         # comment .contextMenuEvent() and uncomment ._createContextMenu()
-
         # self._createContextMenu()
 
         self._connectActions()
@@ -53,29 +43,29 @@ class Window(QMainWindow):
 
     def _createMenuBar(self):
         menuBar = self.menuBar()
-        # File menu
+        
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
         fileMenu.addAction(self.newAction)
         fileMenu.addAction(self.openAction)
-        # Open Recent submenu
+        
         self.openRecentMenu = fileMenu.addMenu("Open Recent")
         fileMenu.addAction(self.saveAction)
-        # Separator
+        
         fileMenu.addSeparator()
         fileMenu.addAction(self.exitAction)
-        # Edit menu
+        
         editMenu = menuBar.addMenu("&Edit")
         editMenu.addAction(self.copyAction)
         editMenu.addAction(self.pasteAction)
         editMenu.addAction(self.cutAction)
-        # Separator
+        
         editMenu.addSeparator()
-        # Find and Replace submenu
+        
         findMenu = editMenu.addMenu("Find and Replace")
         findMenu.addAction("Find...")
         findMenu.addAction("Replace...")
-        # Help menu
+        
         helpMenu = menuBar.addMenu(QIcon(":help-content.svg"), "&Help")
         helpMenu.addAction(self.helpContentAction)
         helpMenu.addAction(self.aboutAction)
@@ -136,33 +126,33 @@ class Window(QMainWindow):
         self.aboutAction = QAction("&About...", self)
 
     # Uncomment this method to create a context menu using menu policies
-    # def _createContextMenu(self):
-    #     # Setting contextMenuPolicy
-    #     self.centralWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
-    #     # Populating the widget with actions
-    #     self.centralWidget.addAction(self.newAction)
-    #     self.centralWidget.addAction(self.openAction)
-    #     self.centralWidget.addAction(self.saveAction)
-    #     self.centralWidget.addAction(self.copyAction)
-    #     self.centralWidget.addAction(self.pasteAction)
-    #     self.centralWidget.addAction(self.cutAction)
+    def _createContextMenu(self):
+        # Setting contextMenuPolicy
+        self.centralWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
+        # Populating the widget with actions
+        self.centralWidget.addAction(self.newAction)
+        self.centralWidget.addAction(self.openAction)
+        self.centralWidget.addAction(self.saveAction)
+        self.centralWidget.addAction(self.copyAction)
+        self.centralWidget.addAction(self.pasteAction)
+        self.centralWidget.addAction(self.cutAction)
 
-    def contextMenuEvent(self, event):
-        # Context menu
-        menu = QMenu(self.centralWidget)
-        # Populating the menu with actions
-        menu.addAction(self.newAction)
-        menu.addAction(self.openAction)
-        menu.addAction(self.saveAction)
-        # Separator
-        separator = QAction(self)
-        separator.setSeparator(True)
-        menu.addAction(separator)
-        menu.addAction(self.copyAction)
-        menu.addAction(self.pasteAction)
-        menu.addAction(self.cutAction)
-        # Launching the menu
-        menu.exec(event.globalPos())
+    # def contextMenuEvent(self, event):
+    #     # Context menu
+    #     menu = QMenu(self.centralWidget)
+    #     # Populating the menu with actions
+    #     menu.addAction(self.newAction)
+    #     menu.addAction(self.openAction)
+    #     menu.addAction(self.saveAction)
+    #     # Separator
+    #     separator = QAction(self)
+    #     separator.setSeparator(True)
+    #     menu.addAction(separator)
+    #     menu.addAction(self.copyAction)
+    #     menu.addAction(self.pasteAction)
+    #     menu.addAction(self.cutAction)
+    #     # Launching the menu
+    #     menu.exec(event.globalPos())
 
     def _connectActions(self):
         # Connect File actions
