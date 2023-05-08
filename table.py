@@ -18,33 +18,33 @@ class FileBrowser(QtWidgets.QWidget):
     
     def __init__(self, title):
         QtWidgets.QWidget.__init__(self)
-        layout = QtWidgets.QHBoxLayout()
-        self.setLayout(layout)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.setLayout(self.layout)
     
         self.filter_name = 'All files (*.*)'
         self.dirpath = QtCore.QDir.currentPath()
         
-        self.label = QtWidgets.QLabel()
-        self.label.setText(title)
-        self.label.setFixedWidth(265)
-        self.label.setFont(QtGui.QFont("Arial",weight=QtGui.QFont.Bold))
-        self.label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        layout.addWidget(self.label)
+        label = QtWidgets.QLabel()
+        label.setText(title)
+        label.setFixedWidth(265)
+        label.setFont(QtGui.QFont("Arial",weight=QtGui.QFont.Bold))
+        label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.layout.addWidget(label)
         
         self.lineEdit = QtWidgets.QLineEdit(self)
         self.lineEdit.setFixedWidth(180)
         
-        layout.addWidget(self.lineEdit)
+        self.layout.addWidget(self.lineEdit)
         
-        self.button = QtWidgets.QPushButton('Search')
-        self.button.clicked.connect(self.getFile)
-        layout.addWidget(self.button)
-        layout.addStretch()
+        self.buttonSearch = QtWidgets.QPushButton('Search')
+        self.buttonSearch.clicked.connect(self.get_file)
+        self.layout.addWidget(self.buttonSearch)
 
-    def getFile(self):
+        self.layout.addStretch()
+    
+        return
+    def get_file(self):
         self.filepaths = []
-        
-       
         self.filepaths.append(QtWidgets.QFileDialog.getOpenFileName(self, caption='Choose File',
                                                 directory=self.dirpath,
                                                 filter=self.filter_name)[0])            
@@ -138,11 +138,51 @@ class Ui_ChartStatisticsWindow(QtWidgets.QWidget):
 class Ui_FileScan(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        layout = QtWidgets.QVBoxLayout()
+        self.hLayout = QtWidgets.QHBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
+        
         self.fileBrowser=FileBrowser('Open File')
-        layout.addWidget(self.fileBrowser)
-        self.setLayout(layout)
+        self.layout.addWidget(self.fileBrowser)
 
+        self.buttonAnayze = QtWidgets.QPushButton('Analyze')
+        self.buttonAnayze.clicked.connect(self.analize_file)
+        self.layout.addWidget(self.buttonAnayze)
+
+
+        self.setLayout(self.layout)
+    def analize_file(self):
+        file=self.fileBrowser.getPaths()[0]
+        label_1 = QtWidgets.QLabel("SandBox", self)
+        label_1.setStyleSheet("border: 1px solid black;")
+        label_1.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.layout.addWidget(label_1)
+        icon_1=QtWidgets.QLabel()
+        pixmap=QtGui.QPixmap('./icons/more.svg')
+        pixmap= pixmap.scaled(50, 50)
+        icon_1.setPixmap(pixmap)
+        self.hLayout.addWidget(icon_1)
+        label_2 = QtWidgets.QLabel("Summary", self)       
+        label_2.setStyleSheet("border: 1px solid black;")
+        label_2.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.hLayout.addWidget(label_2)
+
+        self.layout.addLayout(self.hLayout)
+
+        # table=QtWidgets.QTableWidget()
+        # cols=len(data[0].keys())
+        # rows=len(data)
+        # tableWidget.setColumnCount(cols)
+        # tableWidget.setRowCount(rows)
+
+        # tableWidget.setAlternatingRowColors(True)
+        # tableWidget.setWindowTitle("Alerts Table")
+        # tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
+        # [tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
+        # tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
+
+        self.layout.addWidget(table)
+        self.buttonAnayze.hide()
+        self.fileBrowser.hide()
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         self.MainWindow=MainWindow
@@ -159,7 +199,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        #self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+        
         self.verticalLayout_2.addLayout(self.horizontalLayout_1)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
 
@@ -215,7 +255,8 @@ class Ui_MainWindow(object):
         self.aboutAction = QtWidgets.QAction("&About...", self.MainWindow)
     def connect_actions(self):
         # Connect File actions
-        self.newAction.triggered.connect(self.newFile)
+        self.newAction.triggered.connect(self.create_new_file_scan)
+        
         self.openAction.triggered.connect(self.openFile)
         self.saveAction.triggered.connect(self.saveFile)
         self.exitAction.triggered.connect(self.MainWindow.close)
@@ -391,8 +432,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-    def newFile(self):
-        self.centralwidget.setText("<b>File > New</b> clicked")
+   
 
     def openFile(self):
         self.centralwidget.setText("<b>File > Open...</b> clicked")
@@ -442,13 +482,10 @@ class Ui_MainWindow(object):
         if self.FileScanWindow is None:
             self.FileScanWindow=Ui_FileScan()
             self.FileScanWindow.show()
+
         else:
             self.FileScanWindow.close()
             self.FileScanWindow=None
-
-    def getWordCount(self):
-        # Logic for computing the word count goes here...
-        return 42
 
 
 if __name__ == "__main__":
