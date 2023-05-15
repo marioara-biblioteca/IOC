@@ -6,6 +6,8 @@ from PyQt5.QtGui import QPainter, QPen
 from itertools import groupby
 from operator import itemgetter
 import qrc_resources
+import hashlib
+import zlib
 data=[
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'},
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:01','Rule':'Potential persitance via login hook','Severity':'medium','Risk Score':'50','Reason':'modify key-value pairs in plist files to influence system behaviors, such as hiding the execution of an application (i.e. Hidden Window) or running additional commands for persistence '},
@@ -148,41 +150,61 @@ class Ui_FileScan(QtWidgets.QWidget):
         self.buttonAnayze.clicked.connect(self.analize_file)
         self.layout.addWidget(self.buttonAnayze)
 
+        self.buttonClose = QtWidgets.QPushButton('Back')
+        self.buttonClose.clicked.connect(self.close)
+        
+       
 
         self.setLayout(self.layout)
+ 
     def analize_file(self):
-        file=self.fileBrowser.getPaths()[0]
+        try:
+            file=self.fileBrowser.getPaths()[0]
+        except:
+            file='./table.py'
+            
         label_1 = QtWidgets.QLabel("SandBox", self)
         label_1.setStyleSheet("border: 1px solid black;")
         label_1.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.layout.addWidget(label_1)
         icon_1=QtWidgets.QLabel()
-        pixmap=QtGui.QPixmap('./icons/more.svg')
+        pixmap=QtGui.QPixmap('./icons/done.svg')
         pixmap= pixmap.scaled(50, 50)
         icon_1.setPixmap(pixmap)
+        #  NU STIU CUM SA APROPII LABELUL CU SUMMARY DE ICON 
         self.hLayout.addWidget(icon_1)
         label_2 = QtWidgets.QLabel("Summary", self)       
         label_2.setStyleSheet("border: 1px solid black;")
         label_2.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        label_2.move(-75, label_2.y())
+    
         self.hLayout.addWidget(label_2)
 
         self.layout.addLayout(self.hLayout)
 
-        # table=QtWidgets.QTableWidget()
-        # cols=len(data[0].keys())
-        # rows=len(data)
-        # tableWidget.setColumnCount(cols)
-        # tableWidget.setRowCount(rows)
+        tableWidget=QtWidgets.QTableWidget()
+        cols=2
+        rows=8
+        tableWidget.setColumnCount(cols)
+        tableWidget.setRowCount(rows)
 
-        # tableWidget.setAlternatingRowColors(True)
-        # tableWidget.setWindowTitle("Alerts Table")
-        # tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
-        # [tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
-        # tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
+        tableWidget.setAlternatingRowColors(True)
+        tableWidget.setWindowTitle("File analysis")
+        tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
+        [tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
+        tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
+        self.layout.addWidget(tableWidget)
 
-        self.layout.addWidget(table)
+        with open(file,'rb') as f:
+            content=f.read()
+        file_data={"Filename":file,"File type":"binary data","MD5":hashlib.md5(content).hexdigest(),"Sha256":hashlib.sha256(content).hexdigest(),"Sha512":hashlib.sha512(content).hexdigest(),"CRC32":hex(zlib.crc32(content) & 0xffffffff),"Yara":"None Matched","Score":"32"}
+        for i, (k, v) in enumerate(file_data.items()):
+            tableWidget.setItem(i,0,QtWidgets.QTableWidgetItem(k))
+            tableWidget.setItem(i,1,QtWidgets.QTableWidgetItem(v))
+       
         self.buttonAnayze.hide()
         self.fileBrowser.hide()
+        self.layout.addWidget(self.buttonClose)
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         self.MainWindow=MainWindow
@@ -220,6 +242,15 @@ class Ui_MainWindow(object):
         self.create_alert_table()
         self.create_status_bar()
 
+        toolbar=QtWidgets.QToolBar("My main toolbar")
+        self.verticalLayout_2.addWidget(toolbar)
+        cutAction = QtWidgets.QAction(QtGui.QIcon("./icons/edit-cut.svg"), "&Delete", self.MainWindow)
+        cutAction.setText("Detele alerts")
+        cutAction.triggered.connect(self.delete_row)
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        toolbar.addAction(cutAction)
+        
+
         self.MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(self.MainWindow)
         QtCore.QMetaObject.connectSlotsByName(self.MainWindow)
@@ -231,12 +262,11 @@ class Ui_MainWindow(object):
         self.newAction.setText("&New")
         self.newAction.setIcon(QtGui.QIcon("./icons/file-new.svg"))
         self.openAction = QtWidgets.QAction(QtGui.QIcon("./icons/file-open.svg"), "&Open...", self.MainWindow)
-        self.saveAction = QtWidgets.QAction(QtGui.QIcon("./icons/file-save.svg"), "&Save", self.MainWindow)
-        self.exitAction = QtWidgets.QAction("&Exit", self.MainWindow)
+        
         # String-based key sequences
         self.newAction.setShortcut("Ctrl+N")
         self.openAction.setShortcut("Ctrl+O")
-        self.saveAction.setShortcut("Ctrl+S")
+        
         # Help tips
         newTip = "Create a new file"
         self.newAction.setStatusTip(newTip)
@@ -245,11 +275,10 @@ class Ui_MainWindow(object):
         # Edit actions
         self.copyAction = QtWidgets.QAction(QtGui.QIcon("./icons/edit-copy.svg"), "&Copy", self.MainWindow)
         self.pasteAction = QtWidgets.QAction(QtGui.QIcon("./icons/edit-paste.svg"), "&Paste", self.MainWindow)
-        self.cutAction = QtWidgets.QAction(QtGui.QIcon("./icons/edit-cut.svg"), "C&ut", self.MainWindow)
         # Standard key sequence
         self.copyAction.setShortcut(QtGui.QKeySequence.Copy)
         self.pasteAction.setShortcut(QtGui.QKeySequence.Paste)
-        self.cutAction.setShortcut(QtGui.QKeySequence.Cut)
+        
         # Help actions
         self.helpContentAction = QtWidgets.QAction("&Help Content...", self.MainWindow)
         self.aboutAction = QtWidgets.QAction("&About...", self.MainWindow)
@@ -258,12 +287,11 @@ class Ui_MainWindow(object):
         self.newAction.triggered.connect(self.create_new_file_scan)
         
         self.openAction.triggered.connect(self.openFile)
-        self.saveAction.triggered.connect(self.saveFile)
-        self.exitAction.triggered.connect(self.MainWindow.close)
+        
         # Connect Edit actions
         self.copyAction.triggered.connect(self.copyContent)
         self.pasteAction.triggered.connect(self.pasteContent)
-        self.cutAction.triggered.connect(self.cutContent)
+        
         # Connect Help actions
         self.helpContentAction.triggered.connect(self.helpContent)
         self.aboutAction.triggered.connect(self.about)
@@ -279,15 +307,14 @@ class Ui_MainWindow(object):
         fileMenu.addAction(self.openAction)
         
         self.openRecentMenu = fileMenu.addMenu("Open State Charts")
-        fileMenu.addAction(self.saveAction)
         
-        fileMenu.addSeparator()
-        fileMenu.addAction(self.exitAction)
+        
+
         
         editMenu = menuBar.addMenu("&Edit")
         editMenu.addAction(self.copyAction)
         editMenu.addAction(self.pasteAction)
-        editMenu.addAction(self.cutAction)
+        
         
         editMenu.addSeparator()
         
@@ -303,13 +330,19 @@ class Ui_MainWindow(object):
     
     def create_alert_table(self):
 
+        QtWidgets.QToolTip.setFont(QtGui.QFont('Arial', 16))
+        
         #https://www.elastic.co/guide/en/security/current/alerts-ui-manage.html
         tableWidget = QtWidgets.QTableWidget(self.centralwidget)
+        tableWidget.setToolTip('Alerts table')  
         tableWidget.setObjectName("tableWidget")
         self.verticalLayout_2.addWidget(tableWidget)
 
-        cols=len(data[0].keys())
-        rows=len(data)
+        self.alertsCols=len(data[0].keys())
+        self.alertsRows=len(data)
+        cols=self.alertsCols
+        rows=self.alertsRows
+
         tableWidget.setColumnCount(cols)
         tableWidget.setRowCount(rows)
 
@@ -318,25 +351,42 @@ class Ui_MainWindow(object):
         tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
         [tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
         tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
+       
         for row in range(rows):
             for i, (k, v) in enumerate(data[row].items()):
                 if i == 0:
                     item=QtWidgets.QTableWidgetItem()
                     item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
                     item.setCheckState(QtCore.Qt.Unchecked) 
+                    item.setToolTip('Check') 
                     tableWidget.setItem(row,i,item)
                 elif i == 1:
                     item = QtWidgets.QTableWidgetItem()
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     item.setIcon(QtGui.QIcon('./icons/more.svg'))
+                    item.setToolTip('More') 
                     tableWidget.setItem(row, i, item)
                 elif i==2:
                     item = QtWidgets.QTableWidgetItem()
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     item.setIcon(QtGui.QIcon('./icons/expand.svg'))
+                    item.setToolTip('Expand') 
                     tableWidget.setItem(row, i, item)
                 else:
                     tableWidget.setItem(row,i,QtWidgets.QTableWidgetItem(v))
+        self.alertsTable=tableWidget
+    def delete_row(self):
+        cols=self.alertsCols
+        rows=self.alertsRows
+        for row in range(rows):
+            try:
+                if self.alertsTable.item(row,0).checkState() == QtCore.Qt.Checked:
+                    self.alertsTable.removeRow(row)
+            except:
+                pass
+    
+        
+    
     def filter_alerts(self):
         model = TableModel(data)
         proxy_model = QSortFilterProxyModel()
@@ -390,6 +440,7 @@ class Ui_MainWindow(object):
 
         chartview = QChartView(chart)
         chartview.setRenderHint(QPainter.Antialiasing)
+        chartview.setToolTip('This is a tooltip message.')  
         self.horizontalLayout_2.addWidget(chartview)
 
     def create_status_bar(self):
@@ -418,7 +469,7 @@ class Ui_MainWindow(object):
         tableGroupedAlerts.setColumnCount(cols)
         tableGroupedAlerts.setRowCount(rows)
         tableGroupedAlerts.setAlternatingRowColors(True)
-        tableGroupedAlerts.setHorizontalHeaderLabels(['Rule Name','Count']) 
+        tableGroupedAlerts.setHorizontalHeaderLabels(['Rule','Count']) 
         tableGroupedAlerts.horizontalHeader().setSectionResizeMode(0,QtWidgets.QHeaderView.ResizeToContents)
         tableGroupedAlerts.horizontalHeader().setSectionResizeMode(1,QtWidgets.QHeaderView.Stretch)
 
@@ -437,17 +488,13 @@ class Ui_MainWindow(object):
     def openFile(self):
         self.centralwidget.setText("<b>File > Open...</b> clicked")
 
-    def saveFile(self):
-        self.centralwidget.setText("<b>File > Save</b> clicked")
-
     def copyContent(self):
         self.centralWidget.setText("<b>Edit > Copy</b> clicked")
 
     def pasteContent(self):
         self.centralWidget.setText("<b>Edit > Paste</b> clicked")
 
-    def cutContent(self):
-        self.centralWidget.setText("<b>Edit > Cut</b> clicked")
+
 
     def helpContent(self):
         self.centralWidget.setText("<b>Help > Help Content...</b> clicked")
