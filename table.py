@@ -1,210 +1,19 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt,QSortFilterProxyModel, QAbstractTableModel
-
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice
+from PyQt5.QtCore import Qt,QSortFilterProxyModel
+
 from PyQt5.QtGui import QPainter, QPen
 from itertools import groupby
 from operator import itemgetter
+
+from file_scan import *
+from table_model import *
+from chart_statistics import *
+
 import qrc_resources
-import hashlib
-import zlib
-data=[
-        {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'},
-        {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:01','Rule':'Potential persitance via login hook','Severity':'medium','Risk Score':'50','Reason':'modify key-value pairs in plist files to influence system behaviors, such as hiding the execution of an application (i.e. Hidden Window) or running additional commands for persistence '},
-        {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:02','Rule':'Malware prevention alert','Severity':'high','Risk Score':'73','Reason':'malware, intrusion_detection file event with process AYHelperService'},
-        {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'}
-]
-class FileBrowser(QtWidgets.QWidget):
-  
-    OpenFile = 0
-    
-    def __init__(self, title):
-        QtWidgets.QWidget.__init__(self)
-        self.layout = QtWidgets.QHBoxLayout()
-        self.setLayout(self.layout)
-    
-        self.filter_name = 'All files (*.*)'
-        self.dirpath = QtCore.QDir.currentPath()
-        
-        label = QtWidgets.QLabel()
-        label.setText(title)
-        label.setFixedWidth(265)
-        label.setFont(QtGui.QFont("Arial",weight=QtGui.QFont.Bold))
-        label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        self.layout.addWidget(label)
-        
-        self.lineEdit = QtWidgets.QLineEdit(self)
-        self.lineEdit.setFixedWidth(180)
-        
-        self.layout.addWidget(self.lineEdit)
-        
-        self.buttonSearch = QtWidgets.QPushButton('Search')
-        self.buttonSearch.clicked.connect(self.get_file)
-        self.layout.addWidget(self.buttonSearch)
 
-        self.layout.addStretch()
-    
-        return
-    def get_file(self):
-        self.filepaths = []
-        self.filepaths.append(QtWidgets.QFileDialog.getOpenFileName(self, caption='Choose File',
-                                                directory=self.dirpath,
-                                                filter=self.filter_name)[0])            
-            
-        if len(self.filepaths) == 0:
-            return
-        elif len(self.filepaths) == 1:
-            self.lineEdit.setText(self.filepaths[0])
-        else:
-            self.lineEdit.setText(",".join(self.filepaths))    
-    def setLabelWidth(self, width):
-        self.label.setFixedWidth(width)    
- 
-    def setlineEditWidth(self, width):
-        self.lineEdit.setFixedWidth(width)
 
-    def getPaths(self):
-        return self.filepaths
-class TableModel(QAbstractTableModel):
-    def __init__(self, data):
-        super().__init__()
-        self._data = data
-        self._headers=list(data[0].keys())[3:]        
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            return self._data[index.row()][self._headers[index.column()]]
 
-    def rowCount(self, index):
-        return len(self._data)
-    def headerData(self, section, orientation, role):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return str(self._headers[section])
-
-            if orientation == Qt.Vertical:
-                return str(section)
-
-    def columnCount(self, index):
-        return len(self._headers)
-cpu_causes={'backend core':[8.5,QtGui.QColor("#82d3e5")],
-                'bad speculations':[15.4,QtGui.QColor("#cfeef5")],
-                'retring':[32.0,QtGui.QColor("#fdc4c1")],
-                'frontend latency':[13.8, QtGui.QColor("#fd635c")],
-                'frontend bandwith':[9.7,QtGui.QColor("#feb543")],
-                'backend memory':[20.5,QtGui.QColor("#ffe3b8")]}
-memory_causes={'heap':[8.5,QtGui.QColor("#82d3e5")],
-                'thread':[15.4,QtGui.QColor("#cfeef5")],
-                'internal':[32.0,QtGui.QColor("#fdc4c1")],
-                'cache':[13.8, QtGui.QColor("#fd635c")],
-                'symbol':[9.7,QtGui.QColor("#feb543")],
-                'compressed class space':[20.5,QtGui.QColor("#ffe3b8")]}
-class Ui_ChartStatisticsWindow(QtWidgets.QWidget):
-    def __init__(self,flag):
-        super().__init__()
-        layout = QtWidgets.QVBoxLayout()
-        if flag == 'CPU':
-            chart=self.create_piechart(cpu_causes,"CPU load")
-        else:
-            chart=self.create_piechart(memory_causes,"RAM summary")
-        layout.addWidget(chart)
-        self.setLayout(layout)
-    
-    def create_piechart(self,causes,title):
-        series = QPieSeries()
-        for item in causes.items():
-            one_slice=QPieSlice(item[0],item[1][0])
-            one_slice.setExploded(True)
-            one_slice.setLabelVisible(True)
-            one_slice.setLabelVisible(True)
-        
-            label = "<p align='center' style='color:{}'>{}%</p>".format("#82d3e5",item[0]+'\n'+str(round(item[1][0], 2)))
-            one_slice.setLabel(label)
-            one_slice.setColor(item[1][1])
-            series.append(one_slice)
-    
-    
-        chart = QChart()
-        chart.legend().hide()
-        chart.addSeries(series)
-        chart.createDefaultAxes()
-        chart.setAnimationOptions(QChart.SeriesAnimations)
-        chart.setTitle(title)
-
-        chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignBottom)
-
-        chartview = QChartView(chart)
-        chartview.setRenderHint(QPainter.Antialiasing)
-        return chartview
-
-class Ui_FileScan(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
-        self.hLayout = QtWidgets.QHBoxLayout()
-        self.layout = QtWidgets.QVBoxLayout()
-        
-        self.fileBrowser=FileBrowser('Open File')
-        self.layout.addWidget(self.fileBrowser)
-
-        self.buttonAnayze = QtWidgets.QPushButton('Analyze')
-        self.buttonAnayze.clicked.connect(self.analize_file)
-        self.layout.addWidget(self.buttonAnayze)
-
-        self.buttonClose = QtWidgets.QPushButton('Back')
-        self.buttonClose.clicked.connect(self.close)
-        
-       
-
-        self.setLayout(self.layout)
- 
-    def analize_file(self):
-        try:
-            file=self.fileBrowser.getPaths()[0]
-        except:
-            file='./table.py'
-            
-        label_1 = QtWidgets.QLabel("SandBox", self)
-        label_1.setStyleSheet("border: 1px solid black;")
-        label_1.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-        self.layout.addWidget(label_1)
-        icon_1=QtWidgets.QLabel()
-        pixmap=QtGui.QPixmap('./icons/done.svg')
-        pixmap= pixmap.scaled(50, 50)
-        icon_1.setPixmap(pixmap)
-        #  NU STIU CUM SA APROPII LABELUL CU SUMMARY DE ICON 
-        self.hLayout.addWidget(icon_1)
-        label_2 = QtWidgets.QLabel("Summary", self)       
-        label_2.setStyleSheet("border: 1px solid black;")
-        label_2.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        label_2.move(-75, label_2.y())
-    
-        self.hLayout.addWidget(label_2)
-
-        self.layout.addLayout(self.hLayout)
-
-        tableWidget=QtWidgets.QTableWidget()
-        cols=2
-        rows=8
-        tableWidget.setColumnCount(cols)
-        tableWidget.setRowCount(rows)
-
-        tableWidget.setAlternatingRowColors(True)
-        tableWidget.setWindowTitle("File analysis")
-        tableWidget.setHorizontalHeaderLabels(data[0].keys()) 
-        [tableWidget.horizontalHeader().setSectionResizeMode(i,QtWidgets.QHeaderView.ResizeToContents) for i in range(cols-1)]
-        tableWidget.horizontalHeader().setSectionResizeMode(cols-1,QtWidgets.QHeaderView.Stretch)
-        self.layout.addWidget(tableWidget)
-
-        with open(file,'rb') as f:
-            content=f.read()
-        file_data={"Filename":file,"File type":"binary data","MD5":hashlib.md5(content).hexdigest(),"Sha256":hashlib.sha256(content).hexdigest(),"Sha512":hashlib.sha512(content).hexdigest(),"CRC32":hex(zlib.crc32(content) & 0xffffffff),"Yara":"None Matched","Score":"32"}
-        for i, (k, v) in enumerate(file_data.items()):
-            tableWidget.setItem(i,0,QtWidgets.QTableWidgetItem(k))
-            tableWidget.setItem(i,1,QtWidgets.QTableWidgetItem(v))
-       
-        self.buttonAnayze.hide()
-        self.fileBrowser.hide()
-        self.layout.addWidget(self.buttonClose)
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         self.MainWindow=MainWindow
@@ -221,10 +30,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        
         self.verticalLayout_2.addLayout(self.horizontalLayout_1)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
 
+
+        self.add_icon()
         #menuBar
         self.create_actions()
         self.create_menu_bar()
@@ -254,7 +64,14 @@ class Ui_MainWindow(object):
         self.MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(self.MainWindow)
         QtCore.QMetaObject.connectSlotsByName(self.MainWindow)
-
+    
+    def add_icon(self):
+        image = QtWidgets.QLabel()
+        pixmap = QtGui.QPixmap('panda.png')
+        pixmap = pixmap.scaled(30, 30, Qt.KeepAspectRatio)
+        image.setPixmap(pixmap)
+        image.setAlignment(Qt.AlignCenter)
+        self.horizontalLayout_1.addWidget(image)
 
     def create_actions(self):
         # File actions
@@ -486,13 +303,13 @@ class Ui_MainWindow(object):
    
 
     def openFile(self):
-        self.centralwidget.setText("<b>File > Open...</b> clicked")
+        self.label.setText("<b>File > Open...</b> clicked")
 
     def copyContent(self):
-        self.centralWidget.setText("<b>Edit > Copy</b> clicked")
+        self.centralwidget.setText("<b>Edit > Copy</b> clicked")
 
     def pasteContent(self):
-        self.centralWidget.setText("<b>Edit > Paste</b> clicked")
+        self.centralwidget.setText("<b>Edit > Paste</b> clicked")
 
 
 
