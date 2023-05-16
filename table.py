@@ -125,9 +125,6 @@ class Ui_MainWindow(object):
         
         self.openRecentMenu = fileMenu.addMenu("Open State Charts")
         
-        
-
-        
         editMenu = menuBar.addMenu("&Edit")
         editMenu.addAction(self.copyAction)
         editMenu.addAction(self.pasteAction)

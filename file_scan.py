@@ -55,19 +55,24 @@ class Ui_FileScan(QtWidgets.QWidget):
         self.vLayout1.addWidget(self.buttonAnayze)
         self.layout.addLayout(self.vLayout1)
     def add_submit_url_layer2(self):
-        label= QtWidgets.QLabel("Submit urls or hashes", self)       
-        label.setAlignment(Qt.AlignLeft | Qt.AlignHCenter)
-        label.setStyleSheet("border: 1px solid black; color: gray;")
-        label.setFixedSize(400,400)
+        self.url_label= QtWidgets.QLineEdit( self) 
+        self.url_label.setPlaceholderText("Submit url or hash")    
+        
+        self.url_label.setAlignment(Qt.AlignLeft | Qt.AlignHCenter)
+        self.url_label.setStyleSheet("border: 1px solid black; background-color: rgb(229, 228, 226);")
+        self.url_label.setFixedSize(400,400)
         
         buttonClose = QtWidgets.QPushButton('Submit')
-        buttonClose.clicked.connect(self.close)
+        buttonClose.clicked.connect(self.action_submit)
 
-        self.vLayout2.addWidget(label)
+        self.vLayout2.addWidget(self.url_label)
         self.vLayout2.addWidget(buttonClose)
-
+        
         self.layout.addLayout(self.vLayout2)
-       
+    def action_submit(self):
+        #https://www.travelandleisure.com/thmb/n4LZNPWDaJnGGl4jz988ms4u-Pk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/header-PARISPANDA1221-87f0c4cc46bf423ebcaf669c50912c3c.jpg
+        
+        print(self.url_label.text())
     def analize_file(self):
         try:
             file=self.fileBrowser.getPaths()[0]
