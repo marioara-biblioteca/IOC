@@ -9,6 +9,7 @@ from operator import itemgetter
 from file_scan import *
 from table_model import *
 from chart_statistics import *
+from alerts_table import *
 
 import qrc_resources
 
@@ -16,18 +17,23 @@ import qrc_resources
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        self.MainWindow=MainWindow
+
         self.PieChartWindow=None
         self.FileScanWindow=None
+        self.TableWindow=None
+
+        self.MainWindow=MainWindow
         self.MainWindow.setObjectName("Alerts Table")
         self.MainWindow.resize(566, 475)
         self.centralwidget = QtWidgets.QWidget(self.MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        
         self.label=QtWidgets.QLabel(self.centralwidget)
         self.horizontalLayout_1 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_1.setObjectName("horizontalLayout_1")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout_2.addLayout(self.horizontalLayout_1)
@@ -39,7 +45,7 @@ class Ui_MainWindow(object):
         self.create_actions()
         self.create_menu_bar()
         self.connect_actions()
-        #self.create_piechart()
+
         #statistics as piechart
         self.create_piechart()
 
@@ -76,65 +82,45 @@ class Ui_MainWindow(object):
     def create_actions(self):
         # File actions
         self.newAction = QtWidgets.QAction(self.MainWindow)
-        self.newAction.setText("&New")
-        self.newAction.setIcon(QtGui.QIcon("./icons/file-new.svg"))
-        self.openAction = QtWidgets.QAction(QtGui.QIcon("./icons/file-open.svg"), "&Open...", self.MainWindow)
+        self.newAction.setText("&Scan file")
+        self.newAction.setIcon(QtGui.QIcon("./icons/bug.png"))
+        self.openAction = QtWidgets.QAction(QtGui.QIcon("./icons/file-open.svg"), "&Detailed Alerts...", self.MainWindow)
         
         # String-based key sequences
         self.newAction.setShortcut("Ctrl+N")
         self.openAction.setShortcut("Ctrl+O")
         
         # Help tips
-        newTip = "Create a new file"
+        newTip = "Scan a possibly malicious file"
         self.newAction.setStatusTip(newTip)
         self.newAction.setToolTip(newTip)
-        self.newAction.setWhatsThis("Create a new and empty text file")
-        # Edit actions
-        self.copyAction = QtWidgets.QAction(QtGui.QIcon("./icons/edit-copy.svg"), "&Copy", self.MainWindow)
-        self.pasteAction = QtWidgets.QAction(QtGui.QIcon("./icons/edit-paste.svg"), "&Paste", self.MainWindow)
-        # Standard key sequence
-        self.copyAction.setShortcut(QtGui.QKeySequence.Copy)
-        self.pasteAction.setShortcut(QtGui.QKeySequence.Paste)
+      
         
         # Help actions
         self.helpContentAction = QtWidgets.QAction("&Help Content...", self.MainWindow)
         self.aboutAction = QtWidgets.QAction("&About...", self.MainWindow)
     def connect_actions(self):
         # Connect File actions
-        self.newAction.triggered.connect(self.create_new_file_scan)
+        self.newAction.triggered.connect(self.create_new_file_scan)    
+        self.openAction.triggered.connect(self.open_alerts_table)
         
-        self.openAction.triggered.connect(self.openFile)
-        
-        # Connect Edit actions
-        self.copyAction.triggered.connect(self.copyContent)
-        self.pasteAction.triggered.connect(self.pasteContent)
         
         # Connect Help actions
-        self.helpContentAction.triggered.connect(self.helpContent)
+        self.helpContentAction.triggered.connect(self.help_content)
         self.aboutAction.triggered.connect(self.about)
         # Connect Open Recent to dynamically populate it
         self.openRecentMenu.aboutToShow.connect(self.populate_create_statistic)
     def create_menu_bar(self):
         menuBar = self.MainWindow.menuBar()
         
-        fileMenu =QtWidgets.QMenu("&Open", self.MainWindow)
+        fileMenu =QtWidgets.QMenu("&Actions", self.MainWindow)
         menuBar.addMenu(fileMenu)
 
         fileMenu.addAction(self.newAction)
         fileMenu.addAction(self.openAction)
         
-        self.openRecentMenu = fileMenu.addMenu("Open State Charts")
+        self.openRecentMenu = fileMenu.addMenu(QtGui.QIcon("./icons/expand.svg"),"Open State Charts")
         
-        editMenu = menuBar.addMenu("&Edit")
-        editMenu.addAction(self.copyAction)
-        editMenu.addAction(self.pasteAction)
-        
-        
-        editMenu.addSeparator()
-        
-        findMenu = editMenu.addMenu("Find and Replace")
-        findMenu.addAction("Find...")
-        findMenu.addAction("Replace...")
         
         helpMenu = menuBar.addMenu(QtGui.QIcon("./icons/help-content.svg"), "&Help")
         helpMenu.addAction(self.helpContentAction)
@@ -266,12 +252,10 @@ class Ui_MainWindow(object):
         statusbar.setObjectName("statusbar")
         statusbar.showMessage("This is table")
         MainWindow.setStatusBar(statusbar)
+   
     def group(self):
         data2 = sorted(data,
-                    key = itemgetter('Rule'))
-
-        
-           
+                    key = itemgetter('Rule'))        
         
         tableGroupedAlerts = QtWidgets.QTableWidget()
         tableGroupedAlerts.setObjectName("tableGroupedAlerts")
@@ -299,22 +283,22 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
    
 
-    def openFile(self):
-        self.label.setText("<b>File > Open...</b> clicked")
+    def open_alerts_table(self):
+        if self.TableWindow is None:
+            self.TableWindow=Ui_AlertsTable()
+            self.TableWindow.show()
 
-    def copyContent(self):
-        self.centralwidget.setText("<b>Edit > Copy</b> clicked")
+        else:
+            self.TableWindow.close()
+            self.TableWindow=None
 
-    def pasteContent(self):
-        self.centralwidget.setText("<b>Edit > Paste</b> clicked")
-
-
-
-    def helpContent(self):
-        self.centralWidget.setText("<b>Help > Help Content...</b> clicked")
+    def help_content(self):
+        #TODO
+        return
 
     def about(self):
-        self.centralWidget.setText("<b>Help > About...</b> clicked")
+        #TODO
+        return
 
     def populate_create_statistic(self):   
         self.openRecentMenu.clear()

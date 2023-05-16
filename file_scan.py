@@ -2,6 +2,8 @@ import hashlib
 import zlib
 from PyQt5 import QtCore, QtGui, QtWidgets
 from file_browse import *
+import urllib.request
+import sys
 
 data=[
         {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'},
@@ -14,8 +16,13 @@ class Ui_FileScan(QtWidgets.QWidget):
         super().__init__()
         self.vLayout1 = QtWidgets.QVBoxLayout()
         self.vLayout2=QtWidgets.QVBoxLayout()
+        self.layout0 = QtWidgets.QHBoxLayout()
         self.layout = QtWidgets.QHBoxLayout()
         self.bigLayout=QtWidgets.QVBoxLayout()
+        
+        self.create_menu_bar(self.layout0)
+        self.layout0.addStretch()
+        self.bigLayout.addLayout(self.layout0)
         
         self.add_label("Sandbox",1.5,Qt.AlignCenter,20)
 
@@ -39,7 +46,31 @@ class Ui_FileScan(QtWidgets.QWidget):
         self.bigLayout.addStretch()
 
         self.setLayout(self.bigLayout)
-    
+
+    def create_menu_bar(self,parent):
+
+        image = QtWidgets.QLabel()
+        pixmap = QtGui.QPixmap('panda.png')
+        pixmap = pixmap.scaled(30, 30, QtCore.Qt.KeepAspectRatio)
+        image.setPixmap(pixmap)
+        image.setAlignment(QtCore.Qt.AlignCenter)
+        parent.addWidget(image)
+
+        menubar = QtWidgets.QMenuBar()
+
+        actionFile = menubar.addMenu("&Actions")
+
+        actionFile.addAction(QtGui.QIcon("./icons/bug.png"),"&Scan file")
+        actionFile.addAction(QtGui.QIcon("./icons/file-open.svg"), "&Detailed Alerts")
+        actionFile.addAction(QtGui.QIcon("./icons/expand.svg"),"Open State Charts")
+        actionFile.addSeparator()
+       
+       
+        helpMenu=menubar.addMenu(QtGui.QIcon("./icons/help-content.svg"), "&Help")
+        helpMenu.addAction("&Help Content")
+        helpMenu.addAction("&About")
+        parent.addWidget(menubar)
+
     def add_label(self,title,width,alignment,fontsize):
         label_princ = QtWidgets.QLabel(title, self)
         label_princ.setStyleSheet("border: "+str(width)+"px solid black;")
@@ -61,17 +92,36 @@ class Ui_FileScan(QtWidgets.QWidget):
         self.url_label.setAlignment(Qt.AlignLeft | Qt.AlignHCenter)
         self.url_label.setStyleSheet("border: 1px solid black; background-color: rgb(229, 228, 226);")
         self.url_label.setFixedSize(400,400)
+
+        self.progressBar = QtWidgets.QProgressBar(self)
+        self.progressBar.setGeometry(25, 45, 210, 30)
+        self.progressBar.hide()
         
+
         buttonClose = QtWidgets.QPushButton('Submit')
         buttonClose.clicked.connect(self.action_submit)
 
         self.vLayout2.addWidget(self.url_label)
         self.vLayout2.addWidget(buttonClose)
-        
+
+        self.vLayout2.addWidget(self.progressBar)
         self.layout.addLayout(self.vLayout2)
+    def handle_progress(self, blocknum, blocksize, totalsize):
+        readed_data = blocknum * blocksize
+ 
+        if totalsize > 0:
+            download_percentage = readed_data * 100 / totalsize
+            self.progressBar.setValue(download_percentage)
+            QtWidgets.QApplication.processEvents()
     def action_submit(self):
-        #https://www.travelandleisure.com/thmb/n4LZNPWDaJnGGl4jz988ms4u-Pk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/header-PARISPANDA1221-87f0c4cc46bf423ebcaf669c50912c3c.jpg
-        
+        #down_url=https://www.travelandleisure.com/thmb/n4LZNPWDaJnGGl4jz988ms4u-Pk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/header-PARISPANDA1221-87f0c4cc46bf423ebcaf669c50912c3c.jpg
+        self.progressBar.show()
+        down_url=self.url_label.text()
+        save_loc='./file.dat'
+        opener = urllib.request.URLopener()
+        opener.addheader('User-Agent', '*')
+        filename, headers = opener.retrieve(down_url, save_loc,self.handle_progress)
+
         print(self.url_label.text())
     def analize_file(self):
         try:
