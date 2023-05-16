@@ -41,7 +41,8 @@ class Ui_FileScan(QtWidgets.QWidget):
         self.bigLayout.addStretch()
 
         self.setLayout(self.bigLayout)
-    
+
+
     def add_label(self,title,width,alignment,fontsize):
         label_princ = QtWidgets.QLabel(title, self)
         label_princ.setStyleSheet("border: "+str(width)+"px solid black;")
