@@ -10,6 +10,7 @@ from file_scan import *
 from table_model import *
 from chart_statistics import *
 from alerts_table import *
+from snort_rules import *
 
 import qrc_resources
 
@@ -21,6 +22,7 @@ class Ui_MainWindow(object):
         self.PieChartWindow=None
         self.FileScanWindow=None
         self.TableWindow=None
+        self.RuleWindow=None
 
         self.MainWindow=MainWindow
         self.MainWindow.setObjectName("Alerts Table")
@@ -84,11 +86,8 @@ class Ui_MainWindow(object):
         self.newAction = QtWidgets.QAction(self.MainWindow)
         self.newAction.setText("&Scan file")
         self.newAction.setIcon(QtGui.QIcon("./icons/bug.png"))
-        self.openAction = QtWidgets.QAction(QtGui.QIcon("./icons/file-open.svg"), "&Detailed Alerts...", self.MainWindow)
-        
-        # String-based key sequences
-        self.newAction.setShortcut("Ctrl+N")
-        self.openAction.setShortcut("Ctrl+O")
+        self.openAction = QtWidgets.QAction(QtGui.QIcon("./icons/file-open.svg"), "&Detailed Alerts", self.MainWindow)
+        self.addRuleAction =QtWidgets.QAction(QtGui.QIcon("./icons/file-new.svg"), "&Add new rule", self.MainWindow)
         
         # Help tips
         newTip = "Scan a possibly malicious file"
@@ -103,7 +102,7 @@ class Ui_MainWindow(object):
         # Connect File actions
         self.newAction.triggered.connect(self.create_new_file_scan)    
         self.openAction.triggered.connect(self.open_alerts_table)
-        
+        self.addRuleAction.triggered.connect(self.create_new_rule)
         
         # Connect Help actions
         self.helpContentAction.triggered.connect(self.help_content)
@@ -118,16 +117,23 @@ class Ui_MainWindow(object):
 
         fileMenu.addAction(self.newAction)
         fileMenu.addAction(self.openAction)
-        
+        fileMenu.addAction(self.addRuleAction)
+       
         self.openRecentMenu = fileMenu.addMenu(QtGui.QIcon("./icons/expand.svg"),"Open State Charts")
-        
-        
+
         helpMenu = menuBar.addMenu(QtGui.QIcon("./icons/help-content.svg"), "&Help")
         helpMenu.addAction(self.helpContentAction)
         helpMenu.addAction(self.aboutAction)
 
         self.horizontalLayout_1.addWidget(menuBar)
-    
+    def create_new_rule(self):
+        if self.RuleWindow is None:
+            self.RuleWindow=SnortRuleForm()
+            self.RuleWindow.show()
+
+        else:
+            self.RuleWindow.close()
+            self.RuleWindow=None
     def create_alert_table(self):
 
         QtWidgets.QToolTip.setFont(QtGui.QFont('Arial', 16))
