@@ -16,8 +16,13 @@ class Ui_FileScan(QtWidgets.QWidget):
         super().__init__()
         self.vLayout1 = QtWidgets.QVBoxLayout()
         self.vLayout2=QtWidgets.QVBoxLayout()
+        self.layout0 = QtWidgets.QHBoxLayout()
         self.layout = QtWidgets.QHBoxLayout()
         self.bigLayout=QtWidgets.QVBoxLayout()
+        
+        self.create_menu_bar(self.layout0)
+        self.layout0.addStretch()
+        self.bigLayout.addLayout(self.layout0)
         
         self.add_label("Sandbox",1.5,Qt.AlignCenter,20)
 
@@ -42,6 +47,29 @@ class Ui_FileScan(QtWidgets.QWidget):
 
         self.setLayout(self.bigLayout)
 
+    def create_menu_bar(self,parent):
+
+        image = QtWidgets.QLabel()
+        pixmap = QtGui.QPixmap('panda.png')
+        pixmap = pixmap.scaled(30, 30, QtCore.Qt.KeepAspectRatio)
+        image.setPixmap(pixmap)
+        image.setAlignment(QtCore.Qt.AlignCenter)
+        parent.addWidget(image)
+
+        menubar = QtWidgets.QMenuBar()
+
+        actionFile = menubar.addMenu("&Actions")
+
+        actionFile.addAction(QtGui.QIcon("./icons/bug.png"),"&Scan file")
+        actionFile.addAction(QtGui.QIcon("./icons/file-open.svg"), "&Detailed Alerts")
+        actionFile.addAction(QtGui.QIcon("./icons/expand.svg"),"Open State Charts")
+        actionFile.addSeparator()
+       
+       
+        helpMenu=menubar.addMenu(QtGui.QIcon("./icons/help-content.svg"), "&Help")
+        helpMenu.addAction("&Help Content")
+        helpMenu.addAction("&About")
+        parent.addWidget(menubar)
 
     def add_label(self,title,width,alignment,fontsize):
         label_princ = QtWidgets.QLabel(title, self)
