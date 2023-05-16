@@ -128,8 +128,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_1.addWidget(menuBar)
     def create_new_rule(self):
         if self.RuleWindow is None:
-            self.RuleWindow=SnortRuleForm()
+            self.RuleWindow=SnortRuleForm(self)
             self.RuleWindow.show()
+                 
 
         else:
             self.RuleWindow.close()
@@ -253,35 +254,37 @@ class Ui_MainWindow(object):
         menubar = QtWidgets.QMenuBar(self.MainWindow)
         menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
         menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(menubar)
+        self.MainWindow.setMenuBar(menubar)
         statusbar = QtWidgets.QStatusBar(self.MainWindow)
         statusbar.setObjectName("statusbar")
         statusbar.showMessage("This is table")
-        MainWindow.setStatusBar(statusbar)
+        self.MainWindow.setStatusBar(statusbar)
    
     def group(self):
+        
         data2 = sorted(data,
                     key = itemgetter('Rule'))        
         
-        tableGroupedAlerts = QtWidgets.QTableWidget()
-        tableGroupedAlerts.setObjectName("tableGroupedAlerts")
-        tableGroupedAlerts.setWindowTitle("Alerts Table")
-        self.horizontalLayout_2.addWidget(tableGroupedAlerts)
+        self.tableGroupedAlerts = QtWidgets.QTableWidget()
+        self.tableGroupedAlerts.setObjectName("tableGroupedAlerts")
+        self.tableGroupedAlerts.setWindowTitle("Alerts Table")
+        self.horizontalLayout_2.addWidget(self.tableGroupedAlerts)
 
         cols=2
         rows=len(data2)
-        tableGroupedAlerts.setColumnCount(cols)
-        tableGroupedAlerts.setRowCount(rows)
-        tableGroupedAlerts.setAlternatingRowColors(True)
-        tableGroupedAlerts.setHorizontalHeaderLabels(['Rule','Count']) 
-        tableGroupedAlerts.horizontalHeader().setSectionResizeMode(0,QtWidgets.QHeaderView.ResizeToContents)
-        tableGroupedAlerts.horizontalHeader().setSectionResizeMode(1,QtWidgets.QHeaderView.Stretch)
+        self.tableGroupedAlerts.setColumnCount(cols)
+        self.tableGroupedAlerts.setRowCount(rows)
+        self.tableGroupedAlerts.setAlternatingRowColors(True)
+        self.tableGroupedAlerts.setHorizontalHeaderLabels(['Rule','Count']) 
+        self.tableGroupedAlerts.horizontalHeader().setSectionResizeMode(0,QtWidgets.QHeaderView.ResizeToContents)
+        self.tableGroupedAlerts.horizontalHeader().setSectionResizeMode(1,QtWidgets.QHeaderView.Stretch)
 
         for i,(key, value) in enumerate(groupby(data2,
                                 key = itemgetter('Rule'))):
 
-            tableGroupedAlerts.setItem(i,0,QtWidgets.QTableWidgetItem(key))
-            tableGroupedAlerts.setItem(i,1,QtWidgets.QTableWidgetItem(str(len(list(value)))))
+            self.tableGroupedAlerts.setItem(i,0,QtWidgets.QTableWidgetItem(key))
+            self.tableGroupedAlerts.setItem(i,1,QtWidgets.QTableWidgetItem(str(len(list(value)))))
+        
             
 
     def retranslateUi(self, MainWindow):

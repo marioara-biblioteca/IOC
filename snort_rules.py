@@ -1,9 +1,16 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QCheckBox, QTableWidgetItem
 from PyQt5.QtCore import Qt
 
+import file_scan
+from table import data
+from itertools import groupby
+from operator import itemgetter
+
+
 class SnortRuleForm(QWidget):
-    def __init__(self):
+    def __init__(self, Window_object=None):
+        self.window_object = Window_object
         super().__init__()
         self.initUI()
 
@@ -37,7 +44,7 @@ class SnortRuleForm(QWidget):
         self.dest_ip_input = QLineEdit()
         dest_port_label = QLabel('Destination Port:')
         self.dest_port_input = QLineEdit()
-    
+
         action_label = QLabel('Action:')
         self.action_input = QLineEdit()
 
@@ -160,7 +167,26 @@ class SnortRuleForm(QWidget):
         return b.isChecked()
 
     def submit(self):
+
+        result = {'Check':'','More':'','Details':'','@timestamp':'2023/03/12 12:00:00','Rule':'Enumeration of users or Groups','Severity':'low','Risk Score':'21','Reason':'process event with process dsmemberutil, parent process bash, by root'}
         rule_id = self.rule_id_input.text()
+        result['Rule'] = rule_id
+        data.append(result)
+        
+        data2 = sorted(data,
+                    key = itemgetter('Rule')) 
+        
+
+        self.window_object.tableGroupedAlerts.clear()
+        self.window_object.tableGroupedAlerts.setHorizontalHeaderLabels(['Rule','Count']) 
+        for i,(key, value) in enumerate(groupby(data2,
+                                key = itemgetter('Rule'))):
+
+            self.window_object.tableGroupedAlerts.setItem(i,0,QTableWidgetItem(key))
+            self.window_object.tableGroupedAlerts.setItem(i,1,QTableWidgetItem(str(len(list(value)))))    
+
+        
+        self.hide()
         protocol = self.protocol_combo.currentText()
         source_ip = self.source_ip_input.text()
         source_port = self.source_port_input.text()

@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtCore import Qt
 from register import RegisterWindow
+from table import Ui_MainWindow
 
 class LoginWindow(QWidget):
     def __init__(self):
@@ -84,7 +85,12 @@ class LoginWindow(QWidget):
         password = self.password.text()
 
         if username == 'admin' and password == 'password':
-            print('Login successful')
+            self.main_window = Ui_MainWindow()
+            self.MainWindow = QMainWindow()
+            self.main_window.setupUi(self.MainWindow)
+            self.MainWindow.show()
+            self.hide()
+            
         else:
             print('Invalid username or password')
 
