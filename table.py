@@ -11,7 +11,7 @@ from table_model import *
 from chart_statistics import *
 from alerts_table import *
 from snort_rules import *
-
+from help_page import *
 import qrc_resources
 
 
@@ -23,6 +23,7 @@ class Ui_MainWindow(object):
         self.FileScanWindow=None
         self.TableWindow=None
         self.RuleWindow=None
+        self.HelpPage=None
 
         self.MainWindow=MainWindow
         self.MainWindow.setObjectName("Alerts Table")
@@ -105,7 +106,7 @@ class Ui_MainWindow(object):
         self.addRuleAction.triggered.connect(self.create_new_rule)
         
         # Connect Help actions
-        self.helpContentAction.triggered.connect(self.help_content)
+        self.helpContentAction.triggered.connect(self.create_help_page)
         self.aboutAction.triggered.connect(self.about)
         # Connect Open Recent to dynamically populate it
         self.openRecentMenu.aboutToShow.connect(self.populate_create_statistic)
@@ -131,10 +132,17 @@ class Ui_MainWindow(object):
             self.RuleWindow=SnortRuleForm(self)
             self.RuleWindow.show()
                  
-
         else:
             self.RuleWindow.close()
             self.RuleWindow=None
+    def create_help_page(self):
+        if self.HelpPage is None:
+            self.HelpPage=Ui_HelpPage()
+            self.HelpPage.show()
+                 
+        else:
+            self.HelpPage.close()
+            self.HelpPage=None
     def create_alert_table(self):
 
         QtWidgets.QToolTip.setFont(QtGui.QFont('Arial', 16))
@@ -247,7 +255,7 @@ class Ui_MainWindow(object):
 
         chartview = QChartView(chart)
         chartview.setRenderHint(QPainter.Antialiasing)
-        chartview.setToolTip('This is a tooltip message.')  
+        chartview.setToolTip('This is a chart.')  
         self.horizontalLayout_2.addWidget(chartview)
 
     def create_status_bar(self):
@@ -302,7 +310,7 @@ class Ui_MainWindow(object):
             self.TableWindow=None
 
     def help_content(self):
-        #TODO
+        
         return
 
     def about(self):

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QMainWindow, QMessageBox
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtCore import Qt
 from register import RegisterWindow
@@ -92,7 +92,13 @@ class LoginWindow(QWidget):
             self.hide()
             
         else:
-            print('Invalid username or password')
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Warning)
+            msgBox.setText("Username or password incorrect")
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            msgBox.exec()
+            self.username.clear()
+            self.password.clear()
 
     def register(self):
         # Implement your register logic here

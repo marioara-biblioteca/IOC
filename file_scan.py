@@ -91,7 +91,7 @@ class Ui_FileScan(QtWidgets.QWidget):
         
         self.url_label.setAlignment(Qt.AlignLeft | Qt.AlignHCenter)
         self.url_label.setStyleSheet("border: 1px solid black; background-color: rgb(229, 228, 226);")
-        self.url_label.setFixedSize(400,400)
+        self.url_label.setFixedSize(400,200)
 
         self.progressBar = QtWidgets.QProgressBar(self)
         self.progressBar.setGeometry(25, 45, 210, 30)
